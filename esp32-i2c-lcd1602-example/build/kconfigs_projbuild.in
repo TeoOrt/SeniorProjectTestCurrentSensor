@@ -1,0 +1,6 @@
+source "/Users/teo/Desktop/espidf/esp-idf/components/app_update/Kconfig.projbuild"
+source "/Users/teo/Desktop/espidf/esp-idf/components/bootloader/Kconfig.projbuild"
+source "/Users/teo/Desktop/espidf/esp-idf/components/esp_rom/Kconfig.projbuild"
+source "/Users/teo/Desktop/espidf/esp-idf/components/esptool_py/Kconfig.projbuild"
+source "/Users/teo/Desktop/espidf/esp-idf/components/partition_table/Kconfig.projbuild"
+source "/Users/teo/esp/esp-idf/examples/peripherals/i2c/esp32-i2c-lcd1602-example/main/Kconfig.projbuild"
