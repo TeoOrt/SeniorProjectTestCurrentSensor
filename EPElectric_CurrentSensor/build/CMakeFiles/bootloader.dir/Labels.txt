@@ -1,0 +1,13 @@
+# Target labels
+ bootloader
+# Source files and their labels
+/Users/teo/esp/esp-idf/examples/peripherals/i2c/MateoLCDCurrent/EPElectric_CurrentSensor/build/CMakeFiles/bootloader
+/Users/teo/esp/esp-idf/examples/peripherals/i2c/MateoLCDCurrent/EPElectric_CurrentSensor/build/CMakeFiles/bootloader.rule
+/Users/teo/esp/esp-idf/examples/peripherals/i2c/MateoLCDCurrent/EPElectric_CurrentSensor/build/CMakeFiles/bootloader-complete.rule
+/Users/teo/esp/esp-idf/examples/peripherals/i2c/MateoLCDCurrent/EPElectric_CurrentSensor/build/bootloader-prefix/src/bootloader-stamp/bootloader-build.rule
+/Users/teo/esp/esp-idf/examples/peripherals/i2c/MateoLCDCurrent/EPElectric_CurrentSensor/build/bootloader-prefix/src/bootloader-stamp/bootloader-configure.rule
+/Users/teo/esp/esp-idf/examples/peripherals/i2c/MateoLCDCurrent/EPElectric_CurrentSensor/build/bootloader-prefix/src/bootloader-stamp/bootloader-download.rule
+/Users/teo/esp/esp-idf/examples/peripherals/i2c/MateoLCDCurrent/EPElectric_CurrentSensor/build/bootloader-prefix/src/bootloader-stamp/bootloader-install.rule
+/Users/teo/esp/esp-idf/examples/peripherals/i2c/MateoLCDCurrent/EPElectric_CurrentSensor/build/bootloader-prefix/src/bootloader-stamp/bootloader-mkdir.rule
+/Users/teo/esp/esp-idf/examples/peripherals/i2c/MateoLCDCurrent/EPElectric_CurrentSensor/build/bootloader-prefix/src/bootloader-stamp/bootloader-patch.rule
+/Users/teo/esp/esp-idf/examples/peripherals/i2c/MateoLCDCurrent/EPElectric_CurrentSensor/build/bootloader-prefix/src/bootloader-stamp/bootloader-update.rule
