@@ -33,7 +33,6 @@
 #define GPIO_OUTPUT_SEL  ((1ULL<<GPIO_BUTTON_0) | (1ULL<<GPIO_BUTTON_1) |  (1ULL<<GPIO_BUTTON_2))
 
 float conversion;
-static xQueueHandle duty_queue = NULL;
 // LCD1602
 #define LCD_NUM_ROWS               2
 #define LCD_NUM_COLUMNS            32
@@ -47,6 +46,14 @@ static xQueueHandle duty_queue = NULL;
 // Undefine USE_STDIN if no stdin is available (e.g. no USB UART) - a fixed delay will occur instead of a wait for a keypress.
 #define USE_STDIN  1
 //#undef USE_STDIN
+#define EXAMPLE_ESP_WIFI_SSID "EPElectric"
+#define EXAMPLE_ESP_WIFI_PASS "EPElectric"
+#define EXAMPLE_MAX_STA_CONN 3
+
+static xQueueHandle duty_queue = NULL;
+
+static EventGroupHandle_t s_wifi_event_group;
+
 
 
 #define I2C_MASTER_NUM           I2C_NUM_0
@@ -56,6 +63,8 @@ static xQueueHandle duty_queue = NULL;
 #define I2C_MASTER_SDA_IO        CONFIG_I2C_MASTER_SDA
 #define I2C_MASTER_SCL_IO        CONFIG_I2C_MASTER_SCL
 #define Mateo 0
+
+///////////////////////////////////
 static void i2c_master_init(void)
 {
     int i2c_master_port = I2C_MASTER_NUM;
@@ -154,13 +163,13 @@ void lcd1602_task(void * pvParameter)
         i2c_lcd1602_set_auto_scroll(lcd_info,false);
   while (1)
   {
-    vTaskDelay(500/portTICK_PERIOD_MS);
+    vTaskDelay(1500/portTICK_PERIOD_MS);
    
     //settings for  lcd info
-  printf("Update Screen\n");
+  //printf("Update Screen\n");
         i2c_lcd1602_home(lcd_info);
   //transfor double into strings
-        sprintf(ans, "I|Sensor = %.3f", conversion);
+        sprintf(ans, "Sensor = %.3f", conversion);
        
         i2c_lcd1602_write_string(lcd_info,ans);
 //wait 100 tick
@@ -178,36 +187,63 @@ void setGPIO()
 void task(void * pvParameter) // testing led light and parallel workloads
 {
   int adc;
+
+  float vref = 4096.0;
+  float unitvalue  = (5.0/vref) *1000.0;
   float voltage;
-  float Read[100];
+  float current;
+  float converse=0;
   int Addition = 0;
   while(1){
-        vTaskDelay(10 / portTICK_RATE_MS);
+ 
 Addition++;
-  adc = adc1_get_raw(ADC1_CHANNEL_6); //Get the ADC reading
-     voltage = (adc * 3.3)/4095; 
-
-     if(Addition<100){
-Read[Addition]= voltage;
+  adc = adc1_get_raw(ADC1_CHANNEL_7); //Get the ADC reading
+     voltage = (adc * 3.3)/4095;
+     current = (voltage-2.495)/0.066;
+     if(current < 0.4){
+      current = 0.0;
      }
-     else if (Addition== 100){
-      Addition=0;
-      GPIO.out ^= BIT2;
-      for(int JRE=0;JRE <100; JRE++){
-        conversion = conversion+ Read[JRE];
-     
-      }
-      conversion = conversion / 100;
-      conversion = (conversion-2.5) * .066;
+     converse= converse + current;
+     if(Addition == 100){
+      conversion = converse / 100;
+      converse = conversion;
+      Addition = 0;
+      printf("Current Sensor Voltage: %.2f\n", voltage);
      }
 
+     }
 
-//printf("Current Sensor Voltage: %.2f\n", conversion);
   }
+
+
+void wifi_init_softap()
+{
+    s_wifi_event_group = xEventGroupCreate();
+    tcpip_adapter_init();
+    ESP_ERROR_CHECK(esp_event_loop_init(NULL, NULL));
+    wifi_init_config_t cfg = WIFI_INIT_CONFIG_DEFAULT();
+    ESP_ERROR_CHECK(esp_wifi_init(&cfg));
+    wifi_config_t wifi_config = {
+        .ap = {
+            .ssid = EXAMPLE_ESP_WIFI_SSID,
+            .ssid_len = strlen(EXAMPLE_ESP_WIFI_SSID),
+            .password = EXAMPLE_ESP_WIFI_PASS,
+            .max_connection = EXAMPLE_MAX_STA_CONN,
+            .authmode = WIFI_AUTH_WPA_WPA2_PSK},
+    };
+    if (strlen(EXAMPLE_ESP_WIFI_PASS) == 0)
+    {
+        wifi_config.ap.authmode = WIFI_AUTH_OPEN;
+    }
+    ESP_ERROR_CHECK(esp_wifi_set_mode(WIFI_MODE_AP));
+    ESP_ERROR_CHECK(esp_wifi_set_config(ESP_IF_WIFI_AP, &wifi_config));
+    ESP_ERROR_CHECK(esp_wifi_start());
 }
 
 void app_main()
 {
+   nvs_flash_init();
+  wifi_init_softap();
     setGPIO();
     setADC();
    // xTaskCreatePinnedToCore(&lcd1602_task, "lcd1602_task", 4096, NULL, 10, NULL,NULL,NULL);
