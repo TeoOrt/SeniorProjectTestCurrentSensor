@@ -13,7 +13,7 @@
 #include "esp_log.h"
 #include "sdkconfig.h"
 #include "rom/uart.h"
-
+#include "sntp.h"
 #include "smbus.h"
 #include "i2c-lcd1602.h"
 #include <string.h>
@@ -26,6 +26,16 @@
 #include "lwip/sys.h"
 #include "lwip/netdb.h"
 #include "lwip/api.h"
+
+#include <stdio.h>
+#include <string.h>
+#include <sys/unistd.h>
+#include <sys/stat.h>
+#include "esp_err.h"
+#include "esp_log.h"
+#include "esp_spiffs.h"
+#include "mbedtls/md5.h"
+
 
 #define onboardLED 2
 #define GPIO_BUTTON_0 5
@@ -73,212 +83,11 @@ static EventGroupHandle_t s_wifi_event_group;
 #define I2C_MASTER_SCL_IO        CONFIG_I2C_MASTER_SCL
 static float percent;
 
-const static char http_html_hdr[] = "HTTP/1.1 200 OK\r\nContent-type: text/html\r\n\r\n";
-const static char http_txt_hdr[] = "HTTP/1.1 200 OK\r\nContent-type: text/plain\r\n\r\n";
-const static char http_index_hml[] = R"=====(
-<!DOCTYPE html>
-<html>
-    <head>
-        <meta
-            charset="UTF-8"
-            name="viewport"
-            content="width = device-width initial-scale = 1.0"
-        />
-        <title>EP ELECTRIC EVTOG </title>
-    <body style="background-color: #6495ED ;">
-        <div class="header"><h1>EP Electric EV2G</h1></div>
-        <input
-            class="button"
-            id="btn0"
-            type="button"
-            value="Grid/Charge"
-            onclick="sendRequestLed()"
-        />
-        <input
-            class="button"
-            id="btn1"
-            type="button"
-            value="Battery %"
-            onclick="sendRequestData()"
-        />
-         <input
-            class="button"
-            id="btn2"
-            type="button"
-            value="First HouseGrid "
-            onclick="TurnOnGridFirstHouse()"
-        />
-
-         <input
-            class="button"
-            id="btn3"
-            type="button"
-            value="Second HouseGrid "
-            onclick="TurnOnGridSecondHouse()"
-        />
-        <div class="sensorVal">
-            <p>Sensor Value:</p>
-            <p id="sen"></p>
-        </div>
-        <style>
-            * {
-                margin: 0;
-                padding: 1;
-            }
-
-            body {
-                background-color: #d4dce2;
-            }
-            .button {
-                border: none;
-  color: white;
-  padding: 20px 30px;
-  width: 38%;
-  height: 20%;
-  text-align: center;
-  text-decoration: none;
-  display: inline-block;
-  font-size: 26px;
-  margin: 30px 20px;
-  transition-duration: 0.4s;
-  cursor: pointer;
-  background-color: #e27217;
-}
-            .header {
-                width: 100%;
-                height: 150px;
-                color: white;
-                background-color: #6495ED;
-                padding: 1;
-                text-align: center;
-            }
+const static char http_html_hdr[] = "HTTP/3000 200 OK\r\nContent-type: text/html\r\n\r\n";
+const static char http_txt_hdr[] = "HTTP/3000 200 OK\r\nContent-type: text/plain\r\n\r\n";
+static char http_index_hml[10000]  ;
 
 
-            .header h1 {
-                color: white;
-                vertical-align: center;
-                font-size: 52px;
-            }
-
-            .btn {
-                margin: 0;
-                margin-top: 0.5%;
-                background-color: #fb9541;
-                width: 100%;
-                border: none;
-                color: white;
-                text-align: center;
-                text-decoration: none;
-                font-size: 16px;
-    
-            }
-
-            .btn:hover {
-                cursor: pointer;
-                background-color: #e27217;
-            }
-
-            .sensorVal {
-                margin: 0;
-                margin-top: 0.5%;
-                width: 100%;
-                height: 700px;
-                color: white;
-                background-color: #6495ED;
-                padding: 0;
-                text-align: center;
-            }
-
-            .sensorVal p {
-                color: white;
-                vertical-align: center;
-                font-size: 38px;
-            }
-
-        </style>
-        <script>
-            function changeButton(value) { 
-                var btn = document.getElementById("btn0"); 
-                if(value === "0"){ 
-                    btn.value = "Powering Grid"; 
-                } else { 
-                    btn.value = "Charging Battery"; 
-                } 
-            } 
-              function SecondchangeButton(value) { 
-                var btn = document.getElementById("btn2"); 
-                if(value === "2"){ 
-                    btn.value = "House 1 Off"; 
-                } else { 
-                    btn.value = "House 1 On"; 
-                } 
-            } 
-
-                function ThirdchangeButton(value) { 
-                            var btn = document.getElementById("btn3"); 
-                            if(value === "3"){ 
-                                btn.value = "House 2 Off"; 
-                            } else { 
-                                btn.value = "House 2 On"; 
-                            } 
-                        } 
-                        
-            
-            function sendRequestLed(){ 
-                var http = new XMLHttpRequest(); 
-                http.onreadystatechange = (()=>{
-                    if(http.readyState === 4){ 
-                        if(http.status === 200){ 
-                            changeButton(http.responseText); 
-                        } 
-                    } 
-                });
-               http.open("GET", "0", true); 
-               http.send(); 
-            } 
-            
-            function sendRequestData(){ 
-                var http = new XMLHttpRequest();
-                http.onreadystatechange = (()=>{ 
-                    if(http.readyState === 4){ 
-                        if(http.status === 200){
-                            document.getElementById("sen").innerHTML = http.responseText; 
-                        } 
-                    } 
-                }); 
-                http.open("GET", "1", true);
-                http.send(); } 
-                
-                 function TurnOnGridFirstHouse(){ 
-                var http = new XMLHttpRequest(); 
-                http.onreadystatechange = (()=>{
-                    if(http.readyState === 4){ 
-                        if(http.status === 200){ 
-                            SecondchangeButton(http.responseText); 
-                        } 
-                    } 
-                });
-               http.open("GET", "2", true); 
-               http.send(); 
-            } 
-
-            function TurnOnGridSecondHouse(){ 
-                var http = new XMLHttpRequest(); 
-                http.onreadystatechange = (()=>{
-                    if(http.readyState === 4){ 
-                        if(http.status === 200){ 
-                            ThirdchangeButton(http.responseText); 
-                        } 
-                    } 
-                });
-               http.open("GET", "3", true); 
-               http.send(); 
-            } 
-
-        </script>
-    </body>
-</html>
-)=====";
 
 ///////////////////////////////////
 static void i2c_master_init(void)
@@ -570,6 +379,7 @@ else{
     {   
         netconn_write(conn, http_html_hdr, sizeof(http_html_hdr) - 1, NETCONN_NOCOPY);
         netconn_write(conn, http_index_hml, sizeof(http_index_hml) - 1, NETCONN_NOCOPY);
+        
     }
 }
 
@@ -626,21 +436,82 @@ static void http_server(void *pvParameters)
     netconn_delete(conn);
 }
 
+void CheckBattery(struct netconn *conn, char command){
+    char ans[50];
+
+    while(1){
+          vTaskDelay(100/portTICK_PERIOD_MS);
+          if(percent <=11.9){
+        gpio_set_level(GPIO_BUTTON_0, 0);
+        sprintf(ans,"Battery Percent is bad %.2f ", percent);
+        netconn_write(conn, http_txt_hdr, sizeof(http_txt_hdr) - 1, NETCONN_NOCOPY);
+        netconn_write(conn, ans, sizeof(ans), NETCONN_NOCOPY); 
+          }
+          else{
+            	gpio_set_level(GPIO_BUTTON_0, 1);
+        sprintf(ans,"Battery Percent is good %.2f ", percent);
+        netconn_write(conn, http_txt_hdr, sizeof(http_txt_hdr) - 1, NETCONN_NOCOPY);
+        netconn_write(conn, ans, sizeof(ans), NETCONN_NOCOPY); 
+          }
+    }
+}
+
+
+
+
 
 
 
 ///////////////////////////main//////////////////////////////////////////////////////
 void app_main()
 {
+
+ESP_LOGI(TAG, "Initializing SPIFFS");
+
+    esp_vfs_spiffs_conf_t conf = {
+      .base_path = "/spiffs_image",
+      .partition_label = NULL,
+      .max_files = 5,
+      .format_if_mount_failed = true
+    };
+
+
+  // Use settings defined above to initialize and mount SPIFFS filesystem.
+    // Note: esp_vfs_spiffs_register is an all-in-one convenience function.
+    esp_err_t ret = esp_vfs_spiffs_register(&conf);
+
+    if (ret != ESP_OK) {
+        if (ret == ESP_FAIL) {
+            ESP_LOGE(TAG, "Failed to mount or format filesystem");
+        } else if (ret == ESP_ERR_NOT_FOUND) {
+            ESP_LOGE(TAG, "Failed to find SPIFFS partition");
+        } else {
+            ESP_LOGE(TAG, "Failed to initialize SPIFFS (%s)", esp_err_to_name(ret));
+        }
+        return;
+    }
+    
+
+
+        size_t total = 0, used = 0;
+    ret = esp_spiffs_info(NULL, &total, &used);
+    if (ret != ESP_OK) {
+        ESP_LOGE(TAG, "Failed to get SPIFFS partition information (%s)", esp_err_to_name(ret));
+    } else {
+        ESP_LOGI(TAG, "Partition size: total: %d, used: %d", total, used);
+    }
+
+    
+
+
+
   nvs_flash_init();
   wifi_init_softap();
   setGPIO();
   setADC();
   xTaskCreatePinnedToCore(&http_server, "http_server", 2048, NULL, 5, NULL,0);
-  
-  xTaskCreatePinnedToCore(&lcd1602_task, "lcd1602_task", 4096, NULL, 5, NULL,0);
+  xTaskCreate(&CheckBattery, "Battery", 2048, NULL, 5,NULL);
+   xTaskCreatePinnedToCore(&lcd1602_task, "lcd1602_task", 4096, NULL, 5, NULL,0);
   xTaskCreatePinnedToCore(&task, "LEd", 4096, NULL, 10, NULL,1);
-
-
 
 }

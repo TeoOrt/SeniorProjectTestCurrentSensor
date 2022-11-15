@@ -1,0 +1,205 @@
+<html>
+    <head>
+        <meta
+            charset="UTF-8"
+            name="viewport"
+            content="width = device-width initial-scale = 1.0"
+        />
+        <script src="https://unpkg.com/petite-vue"></script>
+        <script>
+            PetiteVue.createApp().mount()
+          </script>
+        <title>EP ELECTRIC EVTOG </title>
+    <body style="background-color: #6495ED ;">
+        <div class="header"><h1>EP Electric EV2G</h1></div>
+        <input
+            class="button"
+            id="btn0"
+            type="button"
+            value="Grid/Charge"
+            onclick="sendRequestLed()"
+        />
+        <input
+            class="button"
+            id="btn1"
+            type="button"
+            value="Battery %"
+            onclick="sendRequestData()"
+        />
+         <input
+            class="button"
+            id="btn2"
+            type="button"
+            value="First HouseGrid "
+            onclick="TurnOnGridFirstHouse()"
+        />
+
+         <input
+            class="button"
+            id="btn3"
+            type="button"
+            value="Second HouseGrid "
+            onclick="TurnOnGridSecondHouse()"
+        />
+        <div class="sensorVal">
+            <p>Sensor Value:</p>
+            <p id="sen"></p>
+        </div>
+        <style>
+            * {
+                margin: 0;
+                padding: 1;
+            }
+
+            body {
+                background-color: #d4dce2;
+            }
+            .button {
+                border: none;
+  color: white;
+  padding: 20px 30px;
+  width: 38%;
+  height: 20%;
+  text-align: center;
+  text-decoration: none;
+  display: inline-block;
+  font-size: 26px;
+  margin: 30px 20px;
+  transition-duration: 0.4s;
+  cursor: pointer;
+  background-color: #e27217;
+}
+            .header {
+                width: 100%;
+                height: 150px;
+                color: white;
+                background-color: #6495ED;
+                padding: 1;
+                text-align: center;
+            }
+
+
+            .header h1 {
+                color: white;
+                vertical-align: center;
+                font-size: 52px;
+            }
+
+            .btn {
+                margin: 0;
+                margin-top: 0.5%;
+                background-color: #fb9541;
+                width: 100%;
+                border: none;
+                color: white;
+                text-align: center;
+                text-decoration: none;
+                font-size: 16px;
+    
+            }
+
+            .btn:hover {
+                cursor: pointer;
+                background-color: #e27217;
+            }
+
+            .sensorVal {
+                margin: 0;
+                margin-top: 0.5%;
+                width: 100%;
+                height: 700px;
+                color: white;
+                background-color: #6495ED;
+                padding: 0;
+                text-align: center;
+            }
+
+            .sensorVal p {
+                color: white;
+                vertical-align: center;
+                font-size: 38px;
+            }
+
+        </style>
+        <script>
+            function changeButton(value) { 
+                var btn = document.getElementById("btn0"); 
+                if(value === "0"){ 
+                    btn.value = "Powering Grid"; 
+                } else { 
+                    btn.value = "Charging Battery"; 
+                } 
+            } 
+              function SecondchangeButton(value) { 
+                var btn = document.getElementById("btn2"); 
+                if(value === "2"){ 
+                    btn.value = "House 1 Off"; 
+                } else { 
+                    btn.value = "House 1 On"; 
+                } 
+            } 
+
+                function ThirdchangeButton(value) { 
+                            var btn = document.getElementById("btn3"); 
+                            if(value === "3"){ 
+                                btn.value = "House 2 Off"; 
+                            } else { 
+                                btn.value = "House 2 On"; 
+                            } 
+                        } 
+                        
+            
+            function sendRequestLed(){ 
+                var http = new XMLHttpRequest(); 
+                http.onreadystatechange = (()=>{
+                    if(http.readyState === 4){ 
+                        if(http.status === 200){ 
+                            changeButton(http.responseText); 
+                        } 
+                    } 
+                });
+               http.open("GET", "0", true); 
+               http.send(); 
+            } 
+            
+            function sendRequestData(){ 
+                var http = new XMLHttpRequest();
+                http.onreadystatechange = (()=>{ 
+                    if(http.readyState === 4){ 
+                        if(http.status === 200){
+                            document.getElementById("sen").innerHTML = http.responseText; 
+                        } 
+                    } 
+                }); 
+                http.open("GET", "1", true);
+                http.send(); } 
+                
+                 function TurnOnGridFirstHouse(){ 
+                var http = new XMLHttpRequest(); 
+                http.onreadystatechange = (()=>{
+                    if(http.readyState === 4){ 
+                        if(http.status === 200){ 
+                            SecondchangeButton(http.responseText); 
+                        } 
+                    } 
+                });
+               http.open("GET", "2", true); 
+               http.send(); 
+            } 
+
+            function TurnOnGridSecondHouse(){ 
+                var http = new XMLHttpRequest(); 
+                http.onreadystatechange = (()=>{
+                    if(http.readyState === 4){ 
+                        if(http.status === 200){ 
+                            ThirdchangeButton(http.responseText); 
+                        } 
+                    } 
+                });
+               http.open("GET", "3", true); 
+               http.send(); 
+            } 
+
+        </script>
+    </body>
+</html>

@@ -1,4 +1,4 @@
-# Install script for directory: /Users/teo/esp/esp-idf/examples/peripherals/i2c/MateoLCDCurrent/EPElectric_CurrentSensor/components/esp32-i2c-lcd1602
+# Install script for directory: /Users/teo/Desktop/SeniorDesignP2/SeniorProjectTestCurrentSensor/EPElectric_CurrentSensor/components/esp32-i2c-lcd1602
 
 # Set the install prefix
 if(NOT DEFINED CMAKE_INSTALL_PREFIX)

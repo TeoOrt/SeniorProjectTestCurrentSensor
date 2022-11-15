@@ -1,4 +1,4 @@
-/* * Data converted from /Users/teo/esp/esp-idf/examples/peripherals/i2c/MateoLCDCurrent/EPElectric_CurrentSensor/build/esp-idf/mbedtls/x509_crt_bundle
+/* * Data converted from /Users/teo/Desktop/SeniorDesignP2/SeniorProjectTestCurrentSensor/EPElectric_CurrentSensor/build/esp-idf/mbedtls/x509_crt_bundle
  */
 .data
 .section .rodata.embedded

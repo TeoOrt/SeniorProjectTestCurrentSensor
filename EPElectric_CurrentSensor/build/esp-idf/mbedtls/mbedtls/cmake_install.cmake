@@ -39,8 +39,8 @@ endif()
 
 if(NOT CMAKE_INSTALL_LOCAL_ONLY)
   # Include the install script for each subdirectory.
-  include("/Users/teo/esp/esp-idf/examples/peripherals/i2c/MateoLCDCurrent/EPElectric_CurrentSensor/build/esp-idf/mbedtls/mbedtls/library/cmake_install.cmake")
-  include("/Users/teo/esp/esp-idf/examples/peripherals/i2c/MateoLCDCurrent/EPElectric_CurrentSensor/build/esp-idf/mbedtls/mbedtls/include/cmake_install.cmake")
+  include("/Users/teo/Desktop/SeniorDesignP2/SeniorProjectTestCurrentSensor/EPElectric_CurrentSensor/build/esp-idf/mbedtls/mbedtls/library/cmake_install.cmake")
+  include("/Users/teo/Desktop/SeniorDesignP2/SeniorProjectTestCurrentSensor/EPElectric_CurrentSensor/build/esp-idf/mbedtls/mbedtls/include/cmake_install.cmake")
 
 endif()
 
