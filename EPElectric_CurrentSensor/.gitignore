@@ -1,4 +1,1 @@
-build/
-.vscode/
-.mats
-.mats.html
+./main/build
